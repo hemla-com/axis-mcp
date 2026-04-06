@@ -16,7 +16,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
   "mcpServers": {
     "Axis": {
       "command": "npx",
-      "args": ["-y", "@hemla/axis-mcp@0.1.0"]
+      "args": ["-y", "@hemla/axis-mcp@0.2.0"]
     }
   }
 }
