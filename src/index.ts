@@ -12,7 +12,7 @@ import { getDateTime, setDateTime, getNtp, setNtp } from "./tools/datetime.js";
 import { getNetworkInfo, getNetworkConfig, setNetworkConfig } from "./tools/network.js";
 import { rebootCamera, getSystemLog, getAccessLog, getServerReport, factoryDefault } from "./tools/system.js";
 import { getStreamProfiles, createStreamProfile, updateStreamProfile, removeStreamProfile } from "./tools/stream-profile.js";
-import { getUsers } from "./tools/users.js";
+import { getUsers, createUser, updateUser, removeUser, setupInitialUser } from "./tools/users.js";
 import { getStorageInfo } from "./tools/storage.js";
 import { discoverApis } from "./tools/discovery.js";
 import { getPtzPosition, setPtzPosition, ptzMove, getPtzPresets, gotoPtzPreset } from "./tools/ptz.js";
@@ -384,6 +384,67 @@ server.registerTool("get_users", {
 }, async () => {
   try {
     const result = await getUsers();
+    return { content: [{ type: "text", text: result }] };
+  } catch (err) { return toolError(err); }
+});
+
+server.registerTool("create_user", {
+  description: "Create a new user account on the camera.",
+  inputSchema: {
+    user: z.string().describe("Username (1-14 chars, alphanumeric)"),
+    password: z.string().describe("Password for the new user"),
+    role: z.enum(["viewer", "operator", "admin"]).optional().default("viewer").describe("User role (viewer, operator, admin)"),
+    ptz: z.boolean().optional().default(false).describe("Grant PTZ control"),
+  },
+  annotations: SAFE_WRITE,
+}, async (args) => {
+  try {
+    const result = await createUser(args);
+    return { content: [{ type: "text", text: result }] };
+  } catch (err) { return toolError(err); }
+});
+
+server.registerTool("update_user", {
+  description: "Update an existing user's password or role.",
+  inputSchema: {
+    user: z.string().describe("Username to update"),
+    password: z.string().optional().describe("New password"),
+    role: z.enum(["viewer", "operator", "admin"]).optional().describe("New role"),
+    ptz: z.boolean().optional().describe("Grant/revoke PTZ control"),
+  },
+  annotations: SAFE_WRITE,
+}, async (args) => {
+  try {
+    const result = await updateUser(args);
+    return { content: [{ type: "text", text: result }] };
+  } catch (err) { return toolError(err); }
+});
+
+server.registerTool("remove_user", {
+  description: "Remove a user account from the camera.",
+  inputSchema: {
+    user: z.string().describe("Username to remove"),
+  },
+  annotations: DESTRUCTIVE,
+}, async (args) => {
+  try {
+    const result = await removeUser(args);
+    return { content: [{ type: "text", text: result }] };
+  } catch (err) { return toolError(err); }
+});
+
+server.registerTool("setup_initial_user", {
+  description: "Set up the initial admin user on a factory-fresh Axis camera. Does NOT require connect_camera — connects directly without authentication.",
+  inputSchema: {
+    host: z.string().describe("Camera IP address or hostname"),
+    password: z.string().describe("Password for the initial admin account"),
+    username: z.string().optional().default("root").describe("Username (default 'root')"),
+    port: z.number().optional().default(80).describe("HTTP port (default 80)"),
+  },
+  annotations: SAFE_WRITE,
+}, async (args) => {
+  try {
+    const result = await setupInitialUser(args);
     return { content: [{ type: "text", text: result }] };
   } catch (err) { return toolError(err); }
 });

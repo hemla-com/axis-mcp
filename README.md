@@ -115,6 +115,10 @@ Take a snapshot
 | Tool | Description |
 |------|-------------|
 | `get_users` | Get user accounts and groups |
+| `create_user` | Create a new user account |
+| `update_user` | Update a user's password or role |
+| `remove_user` | Remove a user account |
+| `setup_initial_user` | Set up the first admin user on a factory-fresh camera (no auth required) |
 | `get_storage_info` | Get storage/SD card information |
 
 ## Development

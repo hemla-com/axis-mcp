@@ -4,7 +4,7 @@
 
 ## Overview
 
-This MCP server lets AI assistants configure and manage Axis IP cameras using the VAPIX HTTP API. It supports digest authentication and provides 33 tools across device info, imaging, streaming, PTZ, overlays, network, NTP, users, and storage.
+This MCP server lets AI assistants configure and manage Axis IP cameras using the VAPIX HTTP API. It supports digest authentication and provides 37 tools across device info, imaging, streaming, PTZ, overlays, network, NTP, user management, and storage.
 
 ## Connection
 
@@ -63,11 +63,16 @@ VAPIX uses two request patterns:
 
 ### Users & Storage
 - `get_users` — user accounts and group memberships
+- `create_user` — create a new user with role (viewer/operator/admin) and optional PTZ access
+- `update_user` — change password or role of an existing user
+- `remove_user` — delete a user account
+- `setup_initial_user` — create the first admin account on a factory-fresh camera (unauthenticated, does not require connect_camera)
 - `get_storage_info` — SD card / storage status and configuration
 
 ## Common Workflows
 
-1. **Initial camera setup**: connect → get_device_info → set_image_settings → set_ntp → create_stream_profile
+1. **Fresh camera setup**: setup_initial_user → connect_camera → set_ntp → set_image_settings → create_stream_profile
+2. **Initial camera setup**: connect → get_device_info → set_image_settings → set_ntp → create_stream_profile
 2. **Monitoring check**: connect → get_snapshot → get_system_log → get_storage_info
 3. **PTZ patrol**: connect → get_ptz_presets → goto_ptz_preset → get_snapshot
 4. **Overlay management**: connect → get_overlay → add_text_overlay → get_snapshot to verify
