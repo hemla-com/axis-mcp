@@ -68,10 +68,10 @@ describe("addTextOverlay", () => {
     mockJsonRequest.mockResolvedValue({ identity: 6 });
     const result = await addTextOverlay({ text: "Test", x: 100, y: 200 });
     expect(result).toContain("6");
-    expect(mockJsonRequest).toHaveBeenCalledWith(
+    expect(mockJsonRequest).toHaveBeenLastCalledWith(
       "dynamicoverlay/dynamicoverlay.cgi",
       "addText",
-      expect.objectContaining({ position: { x: 100, y: 200 } })
+      expect.objectContaining({ position: [100, 200] })
     );
   });
 

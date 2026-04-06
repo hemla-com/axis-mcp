@@ -116,25 +116,24 @@ export async function addTextOverlay(input: {
   backgroundColor?: string;
 }): Promise<string> {
   const client = getActiveClient();
-  const cam = input.camera ?? 0;
+  const cam = input.camera ?? 1;
 
   const overlay: any = {
     camera: cam,
     text: input.text,
-    visible: true,
   };
 
   if (input.position) {
     overlay.position = input.position;
   } else if (input.x !== undefined || input.y !== undefined) {
-    overlay.position = { x: input.x ?? 0, y: input.y ?? 0 };
+    overlay.position = [input.x ?? 0, input.y ?? 0];
   } else {
     overlay.position = "topLeft";
   }
 
   if (input.fontSize !== undefined) overlay.fontSize = input.fontSize;
   if (input.color) overlay.textColor = input.color;
-  if (input.backgroundColor) overlay.backgroundColor = input.backgroundColor;
+  if (input.backgroundColor) overlay.textBGColor = input.backgroundColor;
 
   const data = await client.jsonRequest(
     "dynamicoverlay/dynamicoverlay.cgi",
