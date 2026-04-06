@@ -1,5 +1,6 @@
 # @hemla/axis-mcp
 
+[![npm](https://img.shields.io/npm/v/@hemla/axis-mcp)](https://www.npmjs.com/package/@hemla/axis-mcp)
 [![CI](https://github.com/hemla-com/axis-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/hemla-com/axis-mcp/actions/workflows/ci.yml)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
@@ -16,7 +17,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
   "mcpServers": {
     "Axis": {
       "command": "npx",
-      "args": ["-y", "@hemla/axis-mcp@0.2.0"]
+      "args": ["-y", "@hemla/axis-mcp@0.2.1"]
     }
   }
 }
@@ -132,4 +133,6 @@ npm run dev
 
 ## License
 
-[GPL-3.0](LICENSE) -- Hemla
+Copyright (c) 2026 [Hemla](https://hemla.com). Licensed under [GPL-3.0](LICENSE).
+
+Derivative works must use the same license and acknowledge Hemla as the original author.
