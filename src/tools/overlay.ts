@@ -1,41 +1,102 @@
 import { getActiveClient } from "./connect.js";
 
-export async function getOverlay(input: { camera?: number }): Promise<string> {
-  const client = getActiveClient();
-  const cam = input.camera ?? 0;
+function formatPosition(pos: any): string {
+  if (typeof pos === "string") return pos;
+  if (pos && typeof pos.x === "number") return `(${pos.x}, ${pos.y})`;
+  return String(pos ?? "unknown");
+}
 
+function formatTextOverlay(t: any): string {
+  const parts = [
+    `[${t.identity}] "${t.text}"`,
+    `position=${formatPosition(t.position)}`,
+    `visible=${t.visible}`,
+  ];
+  if (t.fontSize) parts.push(`fontSize=${t.fontSize}`);
+  if (t.textColor) parts.push(`color=${t.textColor}`);
+  if (t.textBGColor) parts.push(`bg=${t.textBGColor}`);
+  return `  ${parts.join(" ")}`;
+}
+
+function formatImageOverlay(img: any): string {
+  return `  [${img.identity}] ${img.imagePath} position=${formatPosition(img.position)} visible=${img.visible}`;
+}
+
+async function getCameraCount(): Promise<number> {
   try {
-    const data = await client.jsonRequest(
-      "dynamicoverlay/dynamicoverlay.cgi",
-      "list",
-      { camera: cam }
-    );
+    const params = await getActiveClient().getParams("Image");
+    const nStr = params["root.Image.NbrOfConfigs"];
+    if (nStr) return parseInt(nStr, 10);
+  } catch {}
+  return 2;
+}
 
+async function listOverlaysForCamera(camera: number): Promise<{
+  camera: number;
+  textOverlays: any[];
+  imageOverlays: any[];
+  imageFiles: string[];
+}> {
+  const data = await getActiveClient().jsonRequest(
+    "dynamicoverlay/dynamicoverlay.cgi",
+    "list",
+    { camera }
+  );
+  return {
+    camera,
+    textOverlays: data.textOverlays ?? [],
+    imageOverlays: data.imageOverlays ?? [],
+    imageFiles: data.imageFiles ?? [],
+  };
+}
+
+export async function getOverlay(input: { camera?: number }): Promise<string> {
+  try {
+    const cameras: number[] = [];
+    if (input.camera !== undefined) {
+      cameras.push(input.camera);
+    } else {
+      const count = await getCameraCount();
+      for (let i = 0; i < count; i++) cameras.push(i);
+    }
+
+    const allImageFiles = new Set<string>();
     const lines: string[] = [];
+    let anySuccess = false;
 
-    if (data.textOverlays?.length) {
-      lines.push("Text Overlays:");
-      for (const t of data.textOverlays) {
-        lines.push(`  [${t.identity}] "${t.text}" at (${t.position?.x}, ${t.position?.y}) visible=${t.visible}`);
-      }
+    for (const cam of cameras) {
+      try {
+        const data = await listOverlaysForCamera(cam);
+        anySuccess = true;
+
+        const hasOverlays = data.textOverlays.length > 0 || data.imageOverlays.length > 0;
+        if (!hasOverlays && cameras.length > 1) continue;
+
+        if (cameras.length > 1) lines.push(`Camera ${cam}:`);
+
+        if (data.textOverlays.length) {
+          lines.push("  Text Overlays:");
+          for (const t of data.textOverlays) lines.push(`  ${formatTextOverlay(t)}`);
+        }
+        if (data.imageOverlays.length) {
+          lines.push("  Image Overlays:");
+          for (const img of data.imageOverlays) lines.push(`  ${formatImageOverlay(img)}`);
+        }
+        for (const f of data.imageFiles) allImageFiles.add(f);
+      } catch {}
     }
 
-    if (data.imageOverlays?.length) {
-      lines.push("Image Overlays:");
-      for (const img of data.imageOverlays) {
-        lines.push(`  [${img.identity}] ${img.imagePath} at (${img.position?.x}, ${img.position?.y}) visible=${img.visible}`);
-      }
-    }
+    if (!anySuccess) throw new Error("Dynamic overlay API not available");
 
-    if (data.imageFiles?.length) {
-      lines.push(`Available overlay images: ${data.imageFiles.join(", ")}`);
+    if (allImageFiles.size) {
+      lines.push(`Available overlay images: ${[...allImageFiles].join(", ")}`);
     }
 
     if (lines.length === 0) lines.push("No overlays configured");
 
     return lines.join("\n");
   } catch {
-    const params = await client.getParams("Image.I0.Overlay");
+    const params = await getActiveClient().getParams("Image.I0.Overlay");
     const lines: string[] = [];
     for (const [key, value] of Object.entries(params)) {
       lines.push(`${key}: ${value}`);
@@ -47,6 +108,7 @@ export async function getOverlay(input: { camera?: number }): Promise<string> {
 export async function addTextOverlay(input: {
   camera?: number;
   text: string;
+  position?: string;
   x?: number;
   y?: number;
   fontSize?: number;
@@ -59,9 +121,17 @@ export async function addTextOverlay(input: {
   const overlay: any = {
     camera: cam,
     text: input.text,
-    position: { x: input.x ?? 0, y: input.y ?? 0 },
     visible: true,
   };
+
+  if (input.position) {
+    overlay.position = input.position;
+  } else if (input.x !== undefined || input.y !== undefined) {
+    overlay.position = { x: input.x ?? 0, y: input.y ?? 0 };
+  } else {
+    overlay.position = "topLeft";
+  }
+
   if (input.fontSize !== undefined) overlay.fontSize = input.fontSize;
   if (input.color) overlay.textColor = input.color;
   if (input.backgroundColor) overlay.backgroundColor = input.backgroundColor;

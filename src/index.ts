@@ -132,9 +132,9 @@ server.registerTool("set_image_settings", {
 // ── Overlay ─────────────────────────────────────────────────────
 
 server.registerTool("get_overlay", {
-  description: "Get text and image overlays configured on the video stream.",
+  description: "Get text and image overlays configured on the video stream. Queries all cameras by default.",
   inputSchema: {
-    camera: z.number().optional().default(0).describe("Camera/channel (default 0)"),
+    camera: z.number().optional().describe("Camera/channel to query (omit to query all cameras)"),
   },
   annotations: READ_ONLY,
 }, async (args) => {
@@ -145,15 +145,16 @@ server.registerTool("get_overlay", {
 });
 
 server.registerTool("add_text_overlay", {
-  description: "Add a text overlay to the video stream.",
+  description: "Add a text overlay to the video stream. Supports format modifiers like %F (date), %T (time).",
   inputSchema: {
     camera: z.number().optional().default(0).describe("Camera/channel (default 0)"),
-    text: z.string().describe("Overlay text (supports modifiers like #D for date, #T for time)"),
-    x: z.number().optional().describe("X position"),
-    y: z.number().optional().describe("Y position"),
+    text: z.string().describe("Overlay text (supports modifiers: %F=date, %T=time, %X=time, %x=date)"),
+    position: z.string().optional().describe("Named position: topLeft, topRight, bottomLeft, bottomRight, top, bottom"),
+    x: z.number().optional().describe("X position (used if position not set)"),
+    y: z.number().optional().describe("Y position (used if position not set)"),
     fontSize: z.number().optional().describe("Font size"),
-    color: z.string().optional().describe("Text color"),
-    backgroundColor: z.string().optional().describe("Background color"),
+    color: z.string().optional().describe("Text color (e.g. white, black, red)"),
+    backgroundColor: z.string().optional().describe("Background color (e.g. transparent, black)"),
   },
   annotations: SAFE_WRITE,
 }, async (args) => {
