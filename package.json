@@ -1,0 +1,54 @@
+{
+  "name": "@hemla/axis-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for configuring Axis IP cameras via VAPIX",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "axis-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "llms.txt"
+  ],
+  "keywords": [
+    "mcp",
+    "axis",
+    "vapix",
+    "ip-camera",
+    "surveillance"
+  ],
+  "license": "GPL-3.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hemla-com/axis-mcp.git"
+  },
+  "homepage": "https://github.com/hemla-com/axis-mcp",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "digest-fetch": "^3.1.1",
+    "sharp": "^0.34.5",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.1.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.2"
+  }
+}

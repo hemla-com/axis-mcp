@@ -1,0 +1,74 @@
+# axis-mcp
+
+> MCP server for Axis IP camera configuration via VAPIX
+
+## Overview
+
+This MCP server lets AI assistants configure and manage Axis IP cameras using the VAPIX HTTP API. It supports digest authentication and provides 33 tools across device info, imaging, streaming, PTZ, overlays, network, NTP, users, and storage.
+
+## Connection
+
+Every session starts with `connect_camera` providing host, username, and password. The server authenticates via HTTP Digest and verifies connectivity by fetching basic device info.
+
+## API Patterns
+
+VAPIX uses two request patterns:
+
+1. **JSON-RPC** (modern): POST to `/axis-cgi/*.cgi` with `{ apiVersion, method, params }`. Used by: basicdeviceinfo, ntp, time, streamprofile, capturemode, apidiscovery, dynamicoverlay.
+2. **Legacy CGI**: GET to `/axis-cgi/param.cgi?action=list&group=<group>` for reading, `?action=update&key=value` for writing. Used by: ImageSource.I0.Sensor (imaging), Network, Storage params.
+
+## Tools
+
+### Connection & Discovery
+- `connect_camera` — authenticate and verify camera connectivity
+- `get_device_info` — model, serial, firmware, architecture
+- `discover_apis` — list all VAPIX APIs supported on this device
+- `get_capture_mode` — available resolution/FPS combinations
+
+### Imaging
+- `get_snapshot` — JPEG snapshot (resized to maxWidth, default 1280px)
+- `get_image_settings` — brightness, contrast, saturation, sharpness, white balance, WDR, exposure
+- `set_image_settings` — update any image sensor parameter
+
+### Overlays
+- `get_overlay` — list text and image overlays (via dynamic overlay API)
+- `add_text_overlay` — add text with position, font size, colors
+- `remove_overlay` — remove overlay by identity number
+
+### Date/Time & NTP
+- `get_datetime` / `set_datetime` — camera clock and timezone
+- `get_ntp` / `set_ntp` — NTP client configuration (servers, source, enable/disable)
+
+### Stream Profiles
+- `get_stream_profiles` — list all profiles with parameters
+- `create_stream_profile` — create with name, description, parameters string (e.g. "resolution=1920x1080&fps=30")
+- `update_stream_profile` — modify existing profile
+- `remove_stream_profile` — delete a profile
+
+### Network
+- `get_network_info` — all network params (IP, DNS, hostname, routing)
+- `get_network_config` — modern network settings API
+- `set_network_config` — update hostname, IP, subnet, gateway
+
+### PTZ (Pan/Tilt/Zoom)
+- `get_ptz_position` / `set_ptz_position` — absolute positioning
+- `ptz_move` — relative moves: home, up, down, left, right, stop
+- `get_ptz_presets` / `goto_ptz_preset` — preset management
+
+### System
+- `reboot_camera` — restart the device
+- `get_system_log` / `get_access_log` — log retrieval
+- `get_server_report` — detailed diagnostic report
+- `factory_default` — soft or hard factory reset
+
+### Users & Storage
+- `get_users` — user accounts and group memberships
+- `get_storage_info` — SD card / storage status and configuration
+
+## Common Workflows
+
+1. **Initial camera setup**: connect → get_device_info → set_image_settings → set_ntp → create_stream_profile
+2. **Monitoring check**: connect → get_snapshot → get_system_log → get_storage_info
+3. **PTZ patrol**: connect → get_ptz_presets → goto_ptz_preset → get_snapshot
+4. **Overlay management**: connect → get_overlay → add_text_overlay → get_snapshot to verify
+5. **Network reconfiguration**: connect → get_network_info → set_network_config
